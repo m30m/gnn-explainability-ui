@@ -42,3 +42,6 @@ class BaseExperiment:
 
     def custom_style(self):
         return []
+
+    def is_directed(self):
+        return False

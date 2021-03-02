@@ -120,8 +120,21 @@ export default {
     },
     experiment_id: function () {
       this.getSamples()
-      this.cy.style().resetToDefault();
-      this.cy.style().fromJson(defaultStyle.concat(this.experiment_configs[this.experiment_id].style)).update();
+      this.cy.style().resetToDefault()
+      let experimentConfig = this.experiment_configs[this.experiment_id]
+      let directedStyle = []
+      if (experimentConfig.directed) {
+        directedStyle.push(
+            {
+              selector: 'edge',
+              style: {
+                'target-arrow-color': '#000',
+                'target-arrow-shape': 'triangle',
+              }
+            }
+        )
+      }
+      this.cy.style().fromJson([].concat(directedStyle, defaultStyle, experimentConfig.style)).update()
     },
     explanation: function () {
       this.predict()
@@ -141,7 +154,7 @@ export default {
       sample.nodes.forEach((node, idx) => {
         this.cy.add(
             {
-              data: { name: idx, id: idx, feat: node.feat },
+              data: { name: idx, id: node.id, feat: node.feat },
               group: 'nodes'
             },)
       })
@@ -154,6 +167,7 @@ export default {
         )
       })
       this.runLayout()
+      this.predict()
     },
     getSamples () {
       let vm = this
@@ -187,6 +201,7 @@ export default {
       let data = await response.json()
       this.cy.nodes().forEach(function (el) {
         el.data('name', data[el.data('id')])
+        el.data('pred', data[el.data('id')])
       })
       if (!(this.explainNodeId in data)) { // target node is removed
         this.explainNodeId = null
@@ -272,7 +287,7 @@ export default {
               contentStyle: {}, // css key:value pairs to set the command's css in js if you want
               select: function (ele) { // a function to execute when the command is selected
                 const node_id = ele.data('id')
-                const target = ele.data('name')
+                const target = ele.data('pred')
                 vm.explainNodeId = node_id
                 vm.explain(node_id, target)
               },
@@ -363,9 +378,10 @@ export default {
 </script>
 
 <style scoped>
-#app{
+#app {
   height: 100%;
 }
+
 #cy {
   background: whitesmoke;
   width: 100%;

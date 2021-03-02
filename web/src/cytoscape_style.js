@@ -20,8 +20,6 @@ const defaultStyle = [ // the stylesheet for the graph
     style: {
       'width': 3,
       'line-color': '#000',
-      'target-arrow-color': '#000',
-      'target-arrow-shape': 'triangle',
       'curve-style': 'bezier',
     }
   },
