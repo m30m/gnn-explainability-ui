@@ -246,9 +246,23 @@ def explain_gnnexplainer(model, node_idx, x, edge_index, target, include_edges=N
 
 def explain_pgmexplainer(model, node_idx, x, edge_index, target, include_edges=None):
     explainer = Node_Explainer(model, edge_index, x, len(model.convs), print_result=0)
-    explanation = explainer.explain(node_idx,target)
+    explanation = explainer.explain(node_idx, target)
     node_attr = np.zeros(x.shape[0])
     for node, p_value in explanation.items():
         node_attr[node] = 1 - p_value
     edge_mask = node_attr_to_edge(edge_index, node_attr)
     return edge_mask
+
+
+methods = {
+    'sa': explain_sa,
+    'ig': explain_ig,
+    'sa_node': explain_sa_node,
+    'ig_node': explain_ig_node,
+    'gnnexplainer': explain_gnnexplainer,
+    'random': explain_random,
+    'pagerank': explain_pagerank,
+    'distance': explain_distance,
+    'gradXact': explain_gradXact,
+    'pgmexplainer': explain_pgmexplainer,
+}

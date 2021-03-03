@@ -48,7 +48,9 @@ def predict():
     nodes, edges = request.json['nodes'], request.json['edges']
     node_id_to_index, node_index_to_id = make_node_mappings(nodes)
     converted_edges, edge_index_to_id = make_edges(edges, node_id_to_index, experiment.is_directed())
-    preds = experiment.predict_nodes(nodes, converted_edges)
+    preds = experiment.predict(nodes, converted_edges)
+    if experiment.is_graph_classification():
+        return preds
     id_to_pred = {}
     for idx, result in enumerate(preds):
         id_to_pred[node_index_to_id[idx]] = result
@@ -65,7 +67,10 @@ def explain():
     node_id = request.json['node_id']
     node_id_to_index, node_index_to_id = make_node_mappings(nodes)
     converted_edges, edge_index_to_id = make_edges(edges, node_id_to_index, experiment.is_directed())
-    attributions = experiment.explain_node(nodes, converted_edges, node_id_to_index[node_id], target, method)
+    if experiment.is_graph_classification():
+        attributions = experiment.explain_graph(nodes, converted_edges, target, method)
+    else:
+        attributions = experiment.explain_node(nodes, converted_edges, node_id_to_index[node_id], target, method)
     edge_id_to_attribution = {}
     for idx, attribution in enumerate(attributions.tolist()):
         edge_id_to_attribution[edge_index_to_id[idx]] = float('%.2e' % attribution)
@@ -80,13 +85,32 @@ def samples():
     return jsonify(graphs)
 
 
+METHODS_PRETTY_NAMES = {
+    'sa': 'Edge Gradients',
+    'ig': 'Edge IG',
+    'sa_node': 'Node Gradients',
+    'ig_node': 'Node IG',
+    'gnnexplainer': 'GNN Explainer',
+    'random': 'Random',
+    'pagerank': 'Pagerank',
+    'distance': 'Distance',
+    'gradXact': 'gradXact',
+    'pgmexplainer': 'PGMExplainer',
+}
+
+
 @app.route('/experiments')
 def experiments():
     result = {}
     for id, experiment in experiments_registry.items():
+        methods = experiment.get_explain_methods()
+        methods = [{'text': METHODS_PRETTY_NAMES[method], 'value': method} for method in methods]
         result[id] = {'name': experiment.name,
                       'node_categories': experiment.node_categories(),
-                      'style': experiment.custom_style()}
+                      'style': experiment.custom_style(),
+                      'directed': experiment.is_directed(),
+                      'graph_classification': experiment.is_graph_classification(),
+                      'methods': methods}
     return result
 
 

@@ -32,13 +32,16 @@
           </div>
         </div>
       </form>
-      <div v-if="currentNode">
+      <div v-if="currentNode && options.length > 1">
         <sui-dropdown
-            placeholder="Color"
+            placeholder="Category"
             selection
             :options="options"
             v-model="currentNode.feat"
         />
+      </div>
+      <div v-if="is_graph_classification && graph_prediction">
+        <h3>Model Prediction {{ graph_prediction.text }}</h3>
       </div>
     </div>
     <div class="eight wide column">
@@ -84,25 +87,24 @@ export default {
       explainNodeId: null,
       samples: [],
       experiment_configs: null,
-      explanation_methods: [
-        { text: 'Edge Gradients', value: 'sa' },
-        { text: 'Edge IG', value: 'ig' },
-        { text: 'Node Gradients', value: 'sa_node' },
-        { text: 'Node IG', value: 'ig_node' },
-        { text: 'GNN Explainer', value: 'gnnexplainer' },
-        { text: 'Random', value: 'random' },
-        { text: 'Pagerank', value: 'pagerank' },
-        { text: 'Distance', value: 'distance' },
-        { text: 'gradXact', value: 'gradXact' },
-        { text: 'PGMExplainer', value: 'pgmexplainer' }
-      ],
       experiments: [],
       experiment_id: null,
+      graph_prediction: null
     }
   },
   computed: {
     options () {
       return this.experiment_configs[this.experiment_id].node_categories
+    },
+    is_graph_classification () {
+      if (this.experiment_configs && this.experiment_id)
+        return this.experiment_configs[this.experiment_id].graph_classification
+      return false
+    },
+    explanation_methods () {
+      if (this.experiment_configs && this.experiment_id)
+        return this.experiment_configs[this.experiment_id].methods
+      return []
     }
   },
   watch: {
@@ -154,7 +156,7 @@ export default {
       sample.nodes.forEach((node, idx) => {
         this.cy.add(
             {
-              data: { name: idx, id: node.id, feat: node.feat },
+              data: { name: node.name, id: node.id, feat: node.feat },
               group: 'nodes'
             },)
       })
@@ -199,6 +201,11 @@ export default {
       }
       const response = await fetch('http://localhost:5000/predict', requestOptions)
       let data = await response.json()
+      if (this.is_graph_classification) {
+        this.graph_prediction = data
+        this.explain(null, data.prediction)
+        return
+      }
       this.cy.nodes().forEach(function (el) {
         el.data('name', data[el.data('id')])
         el.data('pred', data[el.data('id')])
@@ -360,7 +367,7 @@ export default {
       console.log(event)
       cy.add(
           { // node a
-            data: { name: 'new', feat: 0 },
+            data: { name: '', feat: 0 },
             position: event.position,
             group: 'nodes'
           },
