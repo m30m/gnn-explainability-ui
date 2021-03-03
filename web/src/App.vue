@@ -1,62 +1,102 @@
 <template>
-  <div id="app" class="ui grid">
-    <div class="four wide column">
-      <form class="ui form">
-        <div class="field">
-          <label>Experiment</label>
-          <sui-dropdown
-              placeholder="Experiment List"
-              selection
-              :options="experiments"
-              v-model="experiment_id"
-          />
-        </div>
-        <div class="field">
-          <label>Explanation Method</label>
-          <sui-dropdown
-              placeholder="Explanation Method"
-              selection
-              :options="explanation_methods"
-              v-model="explanation"
-          />
-        </div>
-        <div class="three fields">
-          <div class="field">
-            <div class="ui primary button" v-on:click="predict">Refresh Explanation</div>
-          </div>
-          <div class="field">
-            <div class="ui info button" v-on:click="resetExplanation">Remove Explanation</div>
-          </div>
-          <div class="field">
-            <div class="ui secondary button" v-on:click="runLayout">Run Layout</div>
-          </div>
-        </div>
-      </form>
-      <div v-if="currentNode && options.length > 1">
-        <sui-dropdown
-            placeholder="Category"
-            selection
-            :options="options"
-            v-model="currentNode.feat"
-        />
-      </div>
-      <div v-if="is_graph_classification && graph_prediction">
-        <h3>Model Prediction {{ graph_prediction.text }}</h3>
+  <div id="app" class="ui padded grid">
+    <div class="ui animated button help" tabindex="0" v-on:click="show_help">
+      <div class="hidden content">Help</div>
+      <div class="visible content">
+        <i class="help icon"></i>
       </div>
     </div>
-    <div class="eight wide column">
-      <div id="cy"></div>
+    <div class="row">
+      <div class="four wide column">
+        <div class="ui segments">
+          <div class="ui segment form">
+            <div class="field">
+              <label>Experiment</label>
+              <sui-dropdown
+                  placeholder="Experiment List"
+                  selection
+                  :options="experiments"
+                  v-model="experiment_id"
+              />
+            </div>
+          </div>
+          <div class="ui segment form">
+            <div class="field">
+              <label>Explanation Method</label>
+              <sui-dropdown
+                  placeholder="Explanation Method"
+                  selection
+                  :options="explanation_methods"
+                  v-model="explanation"
+              />
+            </div>
+          </div>
+          <div class="ui segment">
+            <sui-accordion>
+              <sui-accordion-title>
+                <h4 class="ui header">
+                  <sui-icon name="dropdown"/>
+                  Sample Graphs
+                </h4>
+              </sui-accordion-title>
+              <sui-accordion-content style="max-height: 200px;overflow: auto">
+                <sui-list divided relaxed>
+                  <sui-list-item>
+                    <sui-list-content v-for="sample in samples" v-bind:key="sample.name">
+                      <a is="sui-list-header" v-on:click="setSample(sample)">{{ sample.name }}</a>
+                    </sui-list-content>
+                  </sui-list-item>
+                </sui-list>
+              </sui-accordion-content>
+            </sui-accordion>
+          </div>
 
-    </div>
-    <div class="four wide column">
-      <h3>Sample Graphs:</h3>
-      <sui-list divided relaxed>
-        <sui-list-item>
-          <sui-list-content v-for="sample in samples" v-bind:key="sample.name">
-            <a is="sui-list-header" v-on:click="setSample(sample)">{{ sample.name }}</a>
-          </sui-list-content>
-        </sui-list-item>
-      </sui-list>
+          <div class="ui segment form">
+            <h4 class="ui header">Actions</h4>
+            <div class="three fields">
+              <div class="field">
+                <div class="ui primary button tiny" v-on:click="predict">Refresh Explanation</div>
+              </div>
+              <div class="field">
+                <div class="ui info button tiny" v-on:click="resetExplanation">Remove Explanation</div>
+              </div>
+              <div class="field">
+                <div class="ui secondary button tiny" v-on:click="runLayout">Run Layout</div>
+              </div>
+            </div>
+          </div>
+          <div class="ui segment form" v-if="currentNode && options.length > 1">
+            <div class="field">
+              <label>Node Category</label>
+              <sui-dropdown
+                  placeholder="Category"
+                  selection
+                  :options="options"
+                  v-model="currentNode.feat"
+              />
+            </div>
+          </div>
+          <div class="ui segment" v-if="is_graph_classification && graph_prediction">
+            <h4 class="ui header">Model Prediction {{ graph_prediction.text }}</h4>
+          </div>
+        </div>
+
+      </div>
+      <div class="pusher twelve wide column blurring">
+        <div id="cy">
+        </div>
+      </div>
+      <div class="ui right wide sidebar inverted vertical menu" :class="{visible:help_visible}">
+        <a class="item" v-on:click="help_visible=false">
+          Close
+        </a>
+        <a class="item">
+          2
+        </a>
+        <a class="item">
+          3
+        </a>
+      </div>
     </div>
 
   </div>
@@ -84,6 +124,7 @@ export default {
     return {
       currentNode: null,
       explanation: 'sa',
+      help_visible: false,
       explainNodeId: null,
       samples: [],
       experiment_configs: null,
@@ -143,6 +184,9 @@ export default {
     }
   },
   methods: {
+    show_help () {
+      this.help_visible = true
+    },
     runLayout () {
       let layout = this.cy.layout({ name: 'cose', animate: false })
       layout.run()
@@ -393,5 +437,12 @@ export default {
   background: whitesmoke;
   width: 100%;
   height: 100%;
+}
+
+.help.button {
+  position: fixed;
+  right: 0px;
+  top: 30px;
+  margin: -3px;
 }
 </style>
