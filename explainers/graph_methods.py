@@ -21,8 +21,7 @@ from torch_geometric.data import Data
 from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import to_networkx
 
-from explainers.pgm_explainer import Node_Explainer
-from explainers.gnn_explainer import TargetedGNNExplainer
+from explainers.gnn_explainer import TargetedGNNExplainerGraph
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -185,6 +184,14 @@ def explain_occlusion(model, x, edge_index, target, include_edges=None):
         edge_occlusion_mask[i] = True
     return edge_mask
 
+
+def explain_gnnexplainer(model, x, edge_index, target, include_edges=None, epochs=200):
+    explainer = TargetedGNNExplainerGraph(model, epochs=epochs, log=False)
+    batch = torch.zeros(x.shape[0], dtype=int)
+    node_feat_mask, edge_mask = explainer.explain_with_target(x, edge_index, target_class=target, batch=batch)
+    return edge_mask.cpu().numpy()
+
+
 methods = {
     'sa': explain_sa,
     'ig': explain_ig,
@@ -192,4 +199,5 @@ methods = {
     'ig_node': explain_ig_node,
     'random': explain_random,
     'pagerank': explain_pagerank,
+    'gnnexplainer': explain_gnnexplainer,
 }
