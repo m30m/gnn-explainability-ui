@@ -1,14 +1,18 @@
 <template>
   <div id="app" class="ui padded grid">
-    <div class="ui animated button help" tabindex="0" v-on:click="show_help">
+    <div class="ui animated button help" tabindex="0" v-on:click="help_visible=true">
       <div class="hidden content">Help</div>
       <div class="visible content">
         <i class="help icon"></i>
       </div>
     </div>
     <div class="row">
+      <sui-dimmer active v-if="loading">
+        <div class="ui text loader">Loading</div>
+      </sui-dimmer>
       <div class="four wide column">
         <div class="ui segments">
+
           <div class="ui segment form">
             <div class="field">
               <label>Experiment</label>
@@ -40,13 +44,11 @@
                 </h4>
               </sui-accordion-title>
               <sui-accordion-content style="max-height: 200px;overflow: auto">
-                <sui-list divided relaxed>
-                  <sui-list-item>
-                    <sui-list-content v-for="sample in samples" v-bind:key="sample.name">
-                      <a is="sui-list-header" v-on:click="setSample(sample)">{{ sample.name }}</a>
-                    </sui-list-content>
-                  </sui-list-item>
-                </sui-list>
+                <div class="ui fluid vertical mini menu">
+                  <a class="item" :class="{active: current_sample && current_sample.name===sample.name}" v-for="sample in samples" v-bind:key="sample.name" v-on:click="setSample(sample)">
+                    {{ sample.name }}
+                  </a>
+                </div>
               </sui-accordion-content>
             </sui-accordion>
           </div>
@@ -77,7 +79,8 @@
             </div>
           </div>
           <div class="ui segment" v-if="is_graph_classification && graph_prediction">
-            <h4 class="ui header">Model Prediction {{ graph_prediction.text }}</h4>
+            <h4 class="ui header">Model Prediction: {{ graph_prediction.text }}</h4>
+            <h4 class="ui header" v-if="current_sample">Sample Label: {{ current_sample.label }}</h4>
           </div>
         </div>
 
@@ -86,16 +89,18 @@
         <div id="cy">
         </div>
       </div>
-      <div class="ui right wide sidebar inverted vertical menu" :class="{visible:help_visible}">
+      <div class="ui right wide sidebar vertical menu" :class="{visible:help_visible}">
         <a class="item" v-on:click="help_visible=false">
-          Close
+          Close <i class="close icon"></i>
         </a>
-        <a class="item">
-          2
-        </a>
-        <a class="item">
-          3
-        </a>
+        <div class="item">
+          <h4 class="ui header">How to modify the graph?</h4>
+          <div class="ui list">
+            <div class="item">Add nodes by right-clicking or tapping with two fingers on the canvas.</div>
+            <div class="item">Draw edges by clicking on the red circle appearing on top of nodes.</div>
+            <div class="item">Remove nodes/edges by right clicking or holding your click on the element.</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -105,10 +110,10 @@
 <script>
 import 'semantic-ui-css/semantic.min.css'
 import cytoscape from 'cytoscape'
-import d3Force from 'cytoscape-d3-force'
 import edgehandles from 'cytoscape-edgehandles'
 import cxtmenu from 'cytoscape-cxtmenu'
 import defaultStyle from '@/cytoscape_style'
+import fcose from 'cytoscape-fcose';
 
 import Vue from 'vue'
 import SuiVue from 'semantic-ui-vue'
@@ -116,8 +121,8 @@ import SuiVue from 'semantic-ui-vue'
 Vue.use(SuiVue)
 
 cytoscape.use(edgehandles)
-cytoscape.use(d3Force)
 cytoscape.use(cxtmenu)
+cytoscape.use(fcose);
 export default {
   name: 'App',
   data () {
@@ -130,7 +135,9 @@ export default {
       experiment_configs: null,
       experiments: [],
       experiment_id: null,
-      graph_prediction: null
+      graph_prediction: null,
+      loading: true,
+      current_sample: null
     }
   },
   computed: {
@@ -164,6 +171,7 @@ export default {
     experiment_id: function () {
       this.getSamples()
       this.cy.style().resetToDefault()
+      this.cy.remove('node')
       let experimentConfig = this.experiment_configs[this.experiment_id]
       let directedStyle = []
       if (experimentConfig.directed) {
@@ -184,11 +192,8 @@ export default {
     }
   },
   methods: {
-    show_help () {
-      this.help_visible = true
-    },
     runLayout () {
-      let layout = this.cy.layout({ name: 'cose', animate: false })
+      let layout = this.cy.layout({ name: 'fcose', animate: false })
       layout.run()
     },
 
@@ -197,6 +202,7 @@ export default {
     },
     setSample (sample) {
       this.cy.remove('node')
+      this.current_sample = sample
       sample.nodes.forEach((node, idx) => {
         this.cy.add(
             {
@@ -302,6 +308,7 @@ export default {
       vm.experiments = Object.entries(data).map(([key, config]) => ({ value: key, text: config.name }))
       vm.experiment_configs = data
       vm.experiment_id = '0'
+      vm.loading = false
     })
 
     function setupContextMenu (cy) {
@@ -395,7 +402,7 @@ export default {
       selectionType: 'single',
 
       layout: {
-        name: 'cose',
+        name: 'fcose',
       }
     })
     cy.style().fromJson(defaultStyle).update()

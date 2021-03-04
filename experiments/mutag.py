@@ -45,6 +45,7 @@ class Mutag(BaseExperiment):
         super().__init__()
         model = Net(32, num_classes=2, num_features=14)
         model.load_state_dict(torch.load('mutag.pt'))
+        model.eval()
         self.model = model
 
     def category_to_tensor(self, category):
@@ -61,7 +62,10 @@ class Mutag(BaseExperiment):
             edges = [[u, v] for u, v in edges if u < v]  # one direction of each edge is enough for front-end
             feats = data.x.argmax(dim=1).tolist()
             nodes = [{'feat': f, 'id': idx, 'name': ATOM_MAP[f]} for idx, f in enumerate(feats)]
-            samples.append({'nodes': nodes, 'edges': edges, 'name': f'Graph {sample_id}'})
+            samples.append({'nodes': nodes,
+                            'edges': edges,
+                            'name': f'#{sample_id}: {self.label_text(data.y.item())}',
+                            'label': self.label_text(data.y.item())})
         return samples
 
     def node_categories(self):
@@ -70,7 +74,11 @@ class Mutag(BaseExperiment):
     def is_graph_classification(self):
         return True
 
+    def label_text(self, label):
+        text = 'Mutagenic' if label == 0 else 'Non-mutagenic'
+        return text
+
     def predict(self, nodes, edges):
         pred = self.predict_graph(nodes, edges)
-        text = 'Mutagenic' if pred == 0 else 'Non-mutagenic'
+        text = self.label_text(pred)
         return {'prediction': pred, 'text': text}
