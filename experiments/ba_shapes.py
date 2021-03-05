@@ -36,3 +36,6 @@ class BAShapes(BaseExperiment):
             edges = [[u, v] for u, v in subgraph.edges()]
             samples.append({'nodes': nodes, 'edges': edges, 'name': f'3-hop from node {node_idx}'})
         return samples
+
+    def is_directed(self):
+        return False

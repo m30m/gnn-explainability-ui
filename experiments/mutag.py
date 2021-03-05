@@ -82,3 +82,16 @@ class Mutag(BaseExperiment):
         pred = self.predict_graph(nodes, edges)
         text = self.label_text(pred)
         return {'prediction': pred, 'text': text}
+
+    def is_directed(self):
+        return False
+
+    def custom_style(self):
+        colors = ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99', '#e31a1c', '#fdbf6f', '#ff7f00', '#cab2d6',
+                  '#6a3d9a', '#ffff99', '#b15928', '#d9d9d9', '#8dd3c7']
+        return [{
+            'selector': f'node[name][feat={idx}]',
+            'style': {
+                'background-color': color
+            }
+        } for idx, color in enumerate(colors)]

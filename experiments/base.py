@@ -5,19 +5,8 @@ from explainers.graph_methods import methods as graph_methods
 
 
 class BaseExperiment:
-    name = 'base'
-
     def category_to_tensor(self, category):
         raise NotImplemented
-
-    def ohe_to_str(self):
-        pass
-
-    def str_to_ohe(self):
-        pass
-
-    def models(self):
-        pass
 
     def sample_graphs(self):
         pass
@@ -55,7 +44,7 @@ class BaseExperiment:
         return []
 
     def is_directed(self):
-        return False
+        raise NotImplementedError
 
     def is_graph_classification(self):
         return False
