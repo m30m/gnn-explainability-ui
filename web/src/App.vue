@@ -164,6 +164,9 @@ export default {
           if (k === 'id') continue
           element.data(k, newData[k])
         }
+        console.log('selected option', this.options.find(x => (x.value === newData['feat'])))
+        if(this.options.length > 1)
+          element.data('name', this.options.find(x => (x.value === newData['feat'])).text)
         this.predict()
       },
       deep: true
@@ -325,9 +328,10 @@ export default {
           enabled: true // whether the command is selectable
         }
 
-        function changeFeat (target) {
+        function changeFeat (target, text) {
           return function (ele) {
             ele.data('feat', target)
+            ele.data('name', text)
             if (vm.currentNode && vm.currentNode.id === ele.data('id'))
               vm.currentNode = { ...ele.data() }
             vm.predict()
@@ -358,7 +362,7 @@ export default {
               categories.forEach(category => {
                 commands.push({
                   content: 'To ' + category.text,
-                  select: changeFeat(category.value)
+                  select: changeFeat(category.value, category.text)
                 })
               })
             }
