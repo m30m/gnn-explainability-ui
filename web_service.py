@@ -4,11 +4,15 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 from experiments.base import BaseExperiment
+# noinspection PyUnresolvedReferences
 from experiments import *
 
 experiments_registry = dict()
 for idx, cls in enumerate(BaseExperiment.__subclasses__()):
-    experiments_registry[str(idx)] = cls()
+    try:
+        experiments_registry[str(idx)] = cls()
+    except NotImplementedError:
+        print(f'Ignoring experiment class {str(idx)} since the constructor is not implemented')
 
 app = Flask(__name__)
 CORS(app)
