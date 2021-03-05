@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
@@ -71,9 +73,12 @@ def explain():
         attributions = experiment.explain_graph(nodes, converted_edges, target, method)
     else:
         attributions = experiment.explain_node(nodes, converted_edges, node_id_to_index[node_id], target, method)
-    edge_id_to_attribution = {}
+    edge_id_to_attribution = defaultdict(float)
+
+    # for undirected graphs we return the attribution of each edge as the sum of both directions
     for idx, attribution in enumerate(attributions.tolist()):
-        edge_id_to_attribution[edge_index_to_id[idx]] = float('%.2e' % attribution)
+        edge_id_to_attribution[edge_index_to_id[idx]] += attribution
+    edge_id_to_attribution = {k: float('%.2e' % value) for k, value in edge_id_to_attribution.items()}
     return edge_id_to_attribution
 
 
