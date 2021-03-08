@@ -238,15 +238,20 @@ def explain_occlusion_undirected(model, node_idx, x, edge_index, target, include
     return edge_mask
 
 
-def explain_gnnexplainer(model, node_idx, x, edge_index, target, include_edges=None, epochs=200):
+def explain_gnnexplainer(model, node_idx, x, edge_index, target, include_edges=None, epochs=200, **kwargs):
+    epochs = min(epochs, 600)
     explainer = TargetedGNNExplainer(model, epochs=epochs, log=False)
+    explainer.coeffs.update(kwargs)
     node_feat_mask, edge_mask = explainer.explain_node_with_target(node_idx, x, edge_index, target_class=target)
     return edge_mask.cpu().numpy()
 
 
-def explain_pgmexplainer(model, node_idx, x, edge_index, target, include_edges=None):
+def explain_pgmexplainer(model, node_idx, x, edge_index, target, include_edges=None, num_samples=100, p_threshold=0.05,
+                         pred_threshold=0.1):
+    num_samples = min(num_samples, 300)
     explainer = Node_Explainer(model, edge_index, x, len(model.convs), print_result=0)
-    explanation = explainer.explain(node_idx, target)
+    explanation = explainer.explain(node_idx, target, num_samples=num_samples, p_threshold=p_threshold,
+                                    pred_threshold=pred_threshold)
     node_attr = np.zeros(x.shape[0])
     for node, p_value in explanation.items():
         node_attr[node] = 1 - p_value

@@ -36,8 +36,8 @@ class BaseExperiment:
 
     def explain_node(self, nodes, edges, node_id, target, method):
         data = self.make_data(nodes, edges)
-        explain_function = node_methods[method]
-        attributions = explain_function(self.model, node_id, data.x, data.edge_index, target)
+        explain_function = node_methods[method.pop('name')]
+        attributions = explain_function(self.model, node_id, data.x, data.edge_index, target, **method)
         return attributions
 
     def custom_style(self):
@@ -51,8 +51,8 @@ class BaseExperiment:
 
     def explain_graph(self, nodes, edges, target, method):
         data = self.make_data(nodes, edges)
-        explain_function = graph_methods[method]
-        attributions = explain_function(self.model, data.x, data.edge_index, target)
+        explain_function = graph_methods[method.pop('name')]
+        attributions = explain_function(self.model, data.x, data.edge_index, target, **method)
         return attributions
 
     def get_explain_methods(self):

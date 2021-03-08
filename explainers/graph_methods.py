@@ -185,8 +185,10 @@ def explain_occlusion(model, x, edge_index, target, include_edges=None):
     return edge_mask
 
 
-def explain_gnnexplainer(model, x, edge_index, target, include_edges=None, epochs=200):
+def explain_gnnexplainer(model, x, edge_index, target, include_edges=None, epochs=200, **kwargs):
+    epochs = min(epochs, 600)
     explainer = TargetedGNNExplainerGraph(model, epochs=epochs, log=False)
+    explainer.coeffs.update(kwargs)
     batch = torch.zeros(x.shape[0], dtype=int)
     node_feat_mask, edge_mask = explainer.explain_with_target(x, edge_index, target_class=target, batch=batch)
     return edge_mask.cpu().numpy()

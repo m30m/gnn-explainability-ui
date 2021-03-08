@@ -34,6 +34,70 @@
                   v-model="explanation"
               />
             </div>
+            <sui-accordion v-if="explanation==='gnnexplainer' || explanation==='pgmexplainer'">
+              <sui-accordion-title>
+                <h4 class="ui header">
+                  <sui-icon name="dropdown"/>
+                  Explanation Hyperparameters
+                </h4>
+              </sui-accordion-title>
+              <sui-accordion-content v-if="explanation==='gnnexplainer'">
+                <div class="field">
+                  <label>Epochs</label>
+                  <sui-input type='number' min="0" max="600"
+                             v-model="gnnexplainer_config.epochs"/>
+                </div>
+                <div class="two fields">
+                  <div class="field">
+                    <label>edge_size</label>
+                    <sui-input type='number' step="0.001"
+                               v-model="gnnexplainer_config.edge_size"/>
+                  </div>
+                  <div class="field">
+                    <label>
+                      edge_ent
+                    </label>
+                    <sui-input type='number' step="0.01"
+                               v-model="gnnexplainer_config.edge_ent"/>
+                  </div>
+                </div>
+                <div class="two fields">
+                  <div class="field">
+                    <label>node_feat_size</label>
+                    <sui-input type='number' step="0.01"
+                               v-model="gnnexplainer_config.node_feat_size"/>
+                  </div>
+                  <div class="field">
+                    <label>
+                      node_feat_ent
+                    </label>
+                    <sui-input type='number' step="0.01"
+                               v-model="gnnexplainer_config.node_feat_ent"/>
+                  </div>
+                </div>
+              </sui-accordion-content>
+              <sui-accordion-content v-if="explanation==='pgmexplainer'">
+                <div class="field">
+                  <label>num_samples</label>
+                  <sui-input type='number' min="10" max="300"
+                             v-model="pgmexplainer_config.num_samples"/>
+                </div>
+                <div class="two fields">
+                  <div class="field">
+                    <label>pred_threshold</label>
+                    <sui-input type='number' step="0.01" min="0" max="1"
+                               v-model="pgmexplainer_config.pred_threshold"/>
+                  </div>
+                  <div class="field">
+                    <label>
+                      p_threshold
+                    </label>
+                    <sui-input type='number' step="0.01" min="0" max="1"
+                               v-model="pgmexplainer_config.p_threshold"/>
+                  </div>
+                </div>
+              </sui-accordion-content>
+            </sui-accordion>
           </div>
           <div class="ui segment">
             <sui-accordion>
@@ -107,11 +171,16 @@
         <div class="item">
           <h4 class="ui header">How to see model explanation?</h4>
           <div class="ui list">
-            <div class="item">Right/Long click on a node and choose the explain option</div>
+            <div class="item">Right/Long click on a node and choose the explain option. For graph classification tasks,
+              just click on the Refresh Explanation button.
+            </div>
             <div class="item">The number on each edge represent the importance of that edge for the current prediction
               determined by the explanation method. For undirected graphs, this is the sum of the values for both
               directions of the edge.
               Darker edges are more important.
+            </div>
+            <div class="item">You can also tune explanation method hyperparameters for GNNExplainer and PGMExplainer.
+              After tuning the parameters, click on the Refresh Explanation to update the results.
             </div>
           </div>
         </div>
@@ -147,6 +216,16 @@ export default {
     return {
       currentNode: null,
       explanation: 'sa',
+      gnnexplainer_config: {
+        'epochs': 200,
+        'edge_size': 0.005,
+        'node_feat_size': 1.0,
+        'edge_ent': 1.0,
+        'node_feat_ent': 0.1,
+      },
+      pgmexplainer_config: {
+        'num_samples': 100, 'p_threshold': 0.05, 'pred_threshold': 0.1
+      },
       help_visible: false,
       explainNodeId: null,
       samples: [],
@@ -240,6 +319,7 @@ export default {
         )
       })
       this.runLayout()
+      this.explainNodeId = null
       this.predict()
     },
     getSamples () {
@@ -300,12 +380,17 @@ export default {
     },
     async explain (node_id, target) {
       const { nodes, edges } = this.getCurrentGraph()
+      let method = { 'name': this.explanation }
+      if (this.explanation === 'gnnexplainer')
+        method = { ...method, ...this.gnnexplainer_config }
+      if (this.explanation === 'pgmexplainer')
+        method = { ...method, ...this.pgmexplainer_config }
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           nodes: nodes, edges: edges, node_id: node_id,
-          method: this.explanation, target: target,
+          method: method, target: target,
           experiment_id: this.experiment_id
         })
       }
@@ -360,33 +445,35 @@ export default {
 
         if (ele.group() === 'nodes') {
           if (!('name' in ele.data())) return []
+          let explainCommand = {
+            fillColor: 'rgb(142,246,102)', // optional: custom background color for item
+            content: 'Explain', // html/text content to be displayed in the menu
+            contentStyle: {}, // css key:value pairs to set the command's css in js if you want
+            select: function (ele) { // a function to execute when the command is selected
+              const node_id = ele.data('id')
+              const target = ele.data('pred')
+              vm.explainNodeId = node_id
+              vm.explain(node_id, target)
+            },
+            enabled: true // whether the command is selectable
+          }
           let commands = [ // an array of commands to list in the menu or a function that returns the array
-
-            removeCommand,
-            {
-              fillColor: 'rgb(142,246,102)', // optional: custom background color for item
-              content: 'Explain', // html/text content to be displayed in the menu
-              contentStyle: {}, // css key:value pairs to set the command's css in js if you want
-              select: function (ele) { // a function to execute when the command is selected
-                const node_id = ele.data('id')
-                const target = ele.data('pred')
-                vm.explainNodeId = node_id
-                vm.explain(node_id, target)
-              },
-              enabled: true // whether the command is selectable
-            }
+            removeCommand
           ]
           if (vm.experiment_id) {
             const categories = vm.experiment_configs[vm.experiment_id].node_categories
             let length = Object.keys(categories).length
-            if (length > 1 && length < 8) {
-              categories.forEach(category => {
+            if (length > 1) {
+              // show at most 8 categories
+              categories.slice(0, 8).forEach(category => {
                 commands.push({
                   content: 'To ' + category.text,
                   select: changeFeat(category.value, category.text)
                 })
               })
             }
+            if (!vm.is_graph_classification)
+              commands.push(explainCommand)
           }
           return commands
         } else // edges
