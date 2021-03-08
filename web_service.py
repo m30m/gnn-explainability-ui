@@ -14,7 +14,7 @@ for idx, cls in enumerate(BaseExperiment.__subclasses__()):
     except NotImplementedError:
         print(f'Ignoring experiment class {str(idx)} since the constructor is not implemented')
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/', static_folder='web/dist/')
 CORS(app)
 
 
@@ -121,6 +121,11 @@ def experiments():
                       'graph_classification': experiment.is_graph_classification(),
                       'methods': methods}
     return result
+
+
+@app.route('/')
+def root():
+    return app.send_static_file('index.html')
 
 
 if __name__ == '__main__':

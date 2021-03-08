@@ -113,16 +113,20 @@ import cytoscape from 'cytoscape'
 import edgehandles from 'cytoscape-edgehandles'
 import cxtmenu from 'cytoscape-cxtmenu'
 import defaultStyle from '@/cytoscape_style'
-import fcose from 'cytoscape-fcose';
+import fcose from 'cytoscape-fcose'
 
 import Vue from 'vue'
 import SuiVue from 'semantic-ui-vue'
 
 Vue.use(SuiVue)
 
+let BACKEND_BASE_URI = 'http://localhost:5000'
+if (process.env.NODE_ENV === 'production')
+  BACKEND_BASE_URI = '' // use the same domain/port
+
 cytoscape.use(edgehandles)
 cytoscape.use(cxtmenu)
-cytoscape.use(fcose);
+cytoscape.use(fcose)
 export default {
   name: 'App',
   data () {
@@ -226,7 +230,7 @@ export default {
     },
     getSamples () {
       let vm = this
-      fetch('http://localhost:5000/samples?' + new URLSearchParams({
+      fetch(BACKEND_BASE_URI + '/samples?' + new URLSearchParams({
         experiment_id: this.experiment_id
       })).then(response => response.json()).then(function (data) {
         vm.samples = data
@@ -252,7 +256,7 @@ export default {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nodes: nodes, edges: edges, experiment_id: this.experiment_id })
       }
-      const response = await fetch('http://localhost:5000/predict', requestOptions)
+      const response = await fetch(BACKEND_BASE_URI + '/predict', requestOptions)
       let data = await response.json()
       if (this.is_graph_classification) {
         this.graph_prediction = data
@@ -289,7 +293,7 @@ export default {
           experiment_id: this.experiment_id
         })
       }
-      const response = await fetch('http://localhost:5000/explain', requestOptions)
+      const response = await fetch(BACKEND_BASE_URI + '/explain', requestOptions)
       let data = await response.json()
       const max_value = Math.max(...Object.values(data).map(x => Math.abs(x)))
       console.log(data)
@@ -307,7 +311,7 @@ export default {
   mounted () {
     let vm = this
 
-    fetch('http://localhost:5000/experiments').then(response => response.json()).then(function (data) {
+    fetch(BACKEND_BASE_URI + '/experiments').then(response => response.json()).then(function (data) {
       vm.experiments = Object.entries(data).map(([key, config]) => ({ value: key, text: config.name }))
       vm.experiment_configs = data
       vm.experiment_id = '0'
