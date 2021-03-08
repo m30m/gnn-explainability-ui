@@ -82,6 +82,9 @@
             <h4 class="ui header">Model Prediction: {{ graph_prediction.text }}</h4>
             <h4 class="ui header" v-if="current_sample">Sample Label: {{ current_sample.label }}</h4>
           </div>
+          <div class="ui segment" v-else>
+            <h4 class="ui header">Node Labels are the model prediction</h4>
+          </div>
         </div>
 
       </div>
@@ -99,6 +102,17 @@
             <div class="item">Add nodes by right-clicking or tapping with two fingers on the canvas.</div>
             <div class="item">Draw edges by clicking on the red circle appearing on top of nodes.</div>
             <div class="item">Remove nodes/edges by right clicking or holding your click on the element.</div>
+          </div>
+        </div>
+        <div class="item">
+          <h4 class="ui header">How to see model explanation?</h4>
+          <div class="ui list">
+            <div class="item">Right/Long click on a node and choose the explain option</div>
+            <div class="item">The number on each edge represent the importance of that edge for the current prediction
+              determined by the explanation method. For undirected graphs, this is the sum of the values for both
+              directions of the edge.
+              Darker edges are more important.
+            </div>
           </div>
         </div>
       </div>
@@ -234,6 +248,8 @@ export default {
         experiment_id: this.experiment_id
       })).then(response => response.json()).then(function (data) {
         vm.samples = data
+        if (vm.samples.length > 0)
+          vm.setSample(vm.samples[0])
       })
     },
     getCurrentGraph () {
@@ -362,7 +378,8 @@ export default {
           ]
           if (vm.experiment_id) {
             const categories = vm.experiment_configs[vm.experiment_id].node_categories
-            if (Object.keys(categories).length > 1) {
+            let length = Object.keys(categories).length
+            if (length > 1 && length < 8) {
               categories.forEach(category => {
                 commands.push({
                   content: 'To ' + category.text,
@@ -452,6 +469,7 @@ export default {
   background: whitesmoke;
   width: 100%;
   height: 100%;
+  user-select: none;
 }
 
 .help.button {
