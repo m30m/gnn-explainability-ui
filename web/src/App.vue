@@ -217,7 +217,7 @@ export default {
       currentNode: null,
       explanation: 'sa',
       gnnexplainer_config: {
-        'epochs': 200,
+        'epochs': 400,
         'edge_size': 0.005,
         'node_feat_size': 1.0,
         'edge_ent': 1.0,

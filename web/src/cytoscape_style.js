@@ -35,7 +35,8 @@ const defaultStyle = [ // the stylesheet for the graph
       'label': 'data(attribution)',
       'text-rotation': 'autorotate',
       'text-margin-x': '10px',
-      'text-margin-y': '10px'
+      'text-margin-y': '10px',
+      'font-size':8,
     }
   },
   {
