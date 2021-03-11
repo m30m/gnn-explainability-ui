@@ -270,4 +270,5 @@ methods = {
     'distance': explain_distance,
     'gradXact': explain_gradXact,
     'pgmexplainer': explain_pgmexplainer,
+    'occlusion': explain_occlusion
 }

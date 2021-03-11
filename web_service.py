@@ -105,6 +105,7 @@ METHODS_PRETTY_NAMES = {
     'distance': 'Distance',
     'gradXact': 'gradXact',
     'pgmexplainer': 'PGMExplainer',
+    'occlusion': 'Occlusion'
 }
 
 
