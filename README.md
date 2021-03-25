@@ -1,5 +1,8 @@
 # Explainability UI for GNN models
 
+## Demo
+You can see the demo [here](https://explainer.m30m.me)
+
 ## How to run this project
 ### Running the project
 1. Clone the github repo
