@@ -44,7 +44,7 @@ class Mutag(BaseExperiment):
     def __init__(self) -> None:
         super().__init__()
         model = Net(32, num_classes=2, num_features=14)
-        model.load_state_dict(torch.load('mutag.pt'))
+        model.load_state_dict(torch.load('experiments/mutag.pt'))
         model.eval()
         self.model = model
 
