@@ -184,6 +184,14 @@
             </div>
           </div>
         </div>
+        <div class="item">
+          <h4 class="ui header">Source Code</h4>
+          <div class="ui list">
+            <div class="item">Source code of this project is available on
+              <a href="https://github.com/m30m/gnn-explainability-ui/">Github</a>. Feel free to contribute :)
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
