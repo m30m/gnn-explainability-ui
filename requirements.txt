@@ -115,13 +115,6 @@ terminado==0.8.3
 testpath==0.4.4
 threadpoolctl==2.1.0
 toml==0.10.1
-torch==1.5.1
-torch-cluster==1.5.7
-torch-geometric==1.6.1
-torch-scatter==2.0.5
-torch-sparse==0.6.7
-torch-spline-conv==1.2.0
-torchvision==0.6.1
 tornado==6.0.4
 tqdm==4.46.1
 traitlets==4.3.3

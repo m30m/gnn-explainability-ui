@@ -4,6 +4,7 @@
 ### Running the project
 1. Clone the github repo
 1. Install the python requirements: `pip install -r requirements.txt`
+1. Install torch-geometric. You can use [this](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html) tutorial.
 1. Change to `web` directory: `cd web`
 1. Install the node modules: `npm install` (you need to install npm first)
 1. Run the Vue app with command `npm run build`
