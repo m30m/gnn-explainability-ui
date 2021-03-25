@@ -8,11 +8,11 @@ from experiments.base import BaseExperiment
 from experiments import *
 
 experiments_registry = dict()
-for idx, cls in enumerate(BaseExperiment.__subclasses__()):
+for cls in BaseExperiment.__subclasses__():
     try:
-        experiments_registry[str(idx)] = cls()
+        experiments_registry[str(len(experiments_registry))] = cls()
     except NotImplementedError:
-        print(f'Ignoring experiment class {str(idx)} since the constructor is not implemented')
+        print(f'Ignoring experiment class {cls} since the constructor is not implemented')
 
 app = Flask(__name__, static_url_path='/', static_folder='web/dist/')
 CORS(app)
