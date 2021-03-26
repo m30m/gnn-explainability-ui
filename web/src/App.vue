@@ -161,6 +161,23 @@
           Close <i class="close icon"></i>
         </a>
         <div class="item">
+          <h4 class="ui header">What does this tool do?</h4>
+          <div class="ui list">
+            <div class="item">This tool is a convenient user interface for visualizing edge attributions on trained GNN models and compare different explanation methods.</div>
+            <div class="item">Each experiment consists of a trained GNN model along with sample graphs.</div>
+            <div class="item">The BAShapes experiment is a node classification model trained on the BAShapes dataset from the <a href="https://papers.nips.cc/paper/2019/hash/d80b7040b773199015de6d3b4293c8ff-Abstract.html">GNNExplainer</a> paper. Node labels are the model predictions.</div>
+            <div class="item">The Mutag experiment is a graph classification model trained on the Mutag dataset. The model task is to detect whether a chemical molecule is mutagenic or not. It has been known that NH<sub>2</sub> and NO<sub>2</sub> chemical groups are mutagenic.</div>
+          </div>
+        </div>
+        <div class="item">
+          <h4 class="ui header">What is an explanation method?</h4>
+          <div class="ui list">
+            <div class="item">An explanation method takes as input a GNN model and a single sample graph and outputs attribution values for all the edges in the graph. Higher values means the edge is more important.</div>
+            <div class="item">Each explanation method uses a different approach for calculating how important each edge is and it is important to evaluate explanation methods as well.</div>
+            <div class="item">This user interface can help you see how much explanation methods differ in their output and which one is more suitable for your application.</div>
+          </div>
+        </div>
+        <div class="item">
           <h4 class="ui header">How to modify the graph?</h4>
           <div class="ui list">
             <div class="item">Add nodes by right-clicking or tapping with two fingers on the canvas.</div>
@@ -188,7 +205,7 @@
           <h4 class="ui header">Source Code</h4>
           <div class="ui list">
             <div class="item">Source code of this project is available on
-              <a href="https://github.com/m30m/gnn-explainability-ui/">Github</a>. Feel free to contribute :)
+              <a href="https://github.com/m30m/gnn-explainability-ui/">Github</a>. Feel free to contribute and open up issues :)
             </div>
           </div>
         </div>
